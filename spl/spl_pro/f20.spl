@@ -1,0 +1,6 @@
+R0=0;
+while(R0<20) do
+print R0;
+R0=R0+1;
+endwhile;
+
