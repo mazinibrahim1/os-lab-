@@ -13,6 +13,19 @@ if(functionNum==3)then
 	R4=R0;//return value of relese
 	multipop(R1, R2,R3);
 	return;
+endif;
+if(functionNum==4)then
+	multipush(R1, R2,R3);
+	R1=8;
+	call MOD_0;
+	multipop(R1, R2,R3);
+	read;
+	[PROCESS_TABLE+16*currentPID+4]= WAIT_TERMINAL;
+	multipush(R1, R2,R3);
+	call MOD_5;
+	multipop(R1, R2,R3);
+	[([PTBR + 2 * word/ 512] * 512) + ((word) % 512)]=[PROCESS_TABLE+16*currentPID+8];
+	return;
 else
 	return;
 endif;

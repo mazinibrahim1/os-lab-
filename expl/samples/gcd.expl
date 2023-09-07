@@ -1,0 +1,45 @@
+decl
+ int ExtendedEuclid(int a,int b);
+enddecl
+
+int ExtendedEuclid(int a,int b)
+{
+ decl
+  int r0,r1,s0,s1,t0,t1,qi,ri,si,ti;
+ enddecl
+
+ begin
+ if(a>b)then
+ 	r0=b;
+ else
+ 	r0=a;
+ endif;
+ breakpoint;
+ while(r0>0)do
+	 r1=a%r0;
+	 s1=b%r0;
+	if(r1==0 AND s1==0)then
+		 break;
+		 endif;
+	 r0=r0-1;
+ endwhile;
+ 
+write(r0);
+  return 0;
+ end
+}
+
+int main()
+{
+ decl
+  int a,b,c;
+ enddecl
+
+ begin
+  read(a);
+  read(b);
+  c = ExtendedEuclid(a,b);
+  return 0;
+ end 
+}
+
