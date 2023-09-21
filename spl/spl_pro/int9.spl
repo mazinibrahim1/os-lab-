@@ -1,0 +1,137 @@
+alias userSP R0;
+userSP=SP;
+[PROCESS_TABLE +  [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;//store user stack 
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;//change sp to kernal stack 
+
+[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = 9;
+
+alias filename R1;
+filename=[([PTBR + 2 * ((userSP - 4) / 512)] * 512) + ((userSP - 4) % 512)];
+
+alias  i R2;
+i=0;
+
+alias inodeindex R3;
+inodeindex=-1;
+while(i<60)do
+	if([INODE_TABLE+i*16+1]==filename)then
+	inodeindex=i;
+	break;
+	endif;	
+	i=i+1;
+endwhile;
+
+if(inodeindex==-1)then
+	[([PTBR + 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512)]=-1;
+	SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 13];//change sp to userx stack 
+	[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = 0;
+	ireturn;
+endif;
+
+
+	multipush( R1, R2, R3);
+		R1=3; //Function number of exit in process manager module(Module 1)
+		R2=[SYSTEM_STATUS_TABLE + 1];
+		call MOD_1;
+	multipop( R1, R2, R3);
+
+alias userpage R4;
+userpage=[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11];
+
+	[MEMORY_FREE_LIST+userpage]=[MEMORY_FREE_LIST+userpage]+1;
+	[SYSTEM_STATUS_TABLE+2]=[SYSTEM_STATUS_TABLE+2]-1;
+	SP=userpage*512-1;
+	
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 4]=RUNNING;
+[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 7]=inodeindex;
+
+	PTBR=PAGE_TABLE_BASE+[SYSTEM_STATUS_TABLE+1]*20;
+	//Library
+	[PTBR+0]=63;
+	[PTBR+1]="0100";
+	[PTBR+2]=64;
+	[PTBR+3]="0100";
+	//heap
+	multipush( R1, R2, R3,R4);
+	R1=1;
+	call MOD_2;
+	[PTBR+4]=R0;
+	[PTBR+5]="0110";
+	multipop(R1,R2,R3,R4);
+
+	multipush( R1, R2, R3,R4);
+	R1=1;
+	call MOD_2;
+	[PTBR+6]=R0;
+	[PTBR+7]="0110";
+	multipop(R1,R2,R3,R4);
+	//stack
+	multipush( R1, R2, R3,R4);
+	R1=1;
+	call MOD_2;
+	[PTBR+16]=R0;
+	[PTBR+17]="0110";
+	multipop(R1,R2,R3,R4);
+
+	multipush( R1, R2, R3,R4);
+	R1=1;
+	call MOD_2;
+	[PTBR+18]=R0;
+	[PTBR+19]="0110";
+	multipop(R1,R2,R3,R4);
+
+
+if([INODE_TABLE+i*16+8]!=-1)then
+
+	multipush( R1, R2, R3,R4);
+	R1=1;
+	call MOD_2;
+	[PTBR+8]=R0;
+	[PTBR+9]="0100";
+	multipop(R1,R2,R3,R4);
+	
+	loadi([PTBR+8],[INODE_TABLE+i*16+8]);
+endif;
+
+if([INODE_TABLE+i*16+9]!=-1)then
+
+	multipush( R1, R2, R3,R4);
+	R1=1;
+	call MOD_2;
+	[PTBR+10]=R0;
+	[PTBR+11]="0100";
+	multipop(R1,R2,R3,R4);
+	
+	loadi([PTBR+10],[INODE_TABLE+i*16+9]);
+endif;
+
+if([INODE_TABLE+i*16+10]!=-1)then
+
+	multipush( R1, R2, R3,R4);
+	R1=1;
+	call MOD_2;
+	[PTBR+12]=R0;
+	[PTBR+13]="0100";
+	multipop(R1,R2,R3,R4);
+	
+	loadi([PTBR+12],[INODE_TABLE+i*16+10]);
+endif;
+
+if([INODE_TABLE+i*16+11]!=-1)then
+
+	multipush( R1, R2, R3,R4);
+	R1=1;
+	call MOD_2;
+	[PTBR+14]=R0;
+	[PTBR+15]="0100";
+	multipop(R1,R2,R3,R4);
+	
+	loadi([PTBR+14],[INODE_TABLE+i*16+11]);
+endif;
+[[PTBR+16]*512]=[[PTBR+8]*512+1];
+SP=8*512;
+
+//reset mode flag (0 indicates process is in user mode).
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+
+ireturn;

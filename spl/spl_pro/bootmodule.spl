@@ -18,6 +18,10 @@ loadi(17,30);
 loadi(14,27);
 loadi(15,28);
 
+//load int 9
+loadi(20,33);
+loadi(21,34);
+
 //load console
 loadi(8,21);
 loadi(9,22);
@@ -34,9 +38,31 @@ loadi(41,54);
 loadi(48,61);
 loadi(49,62);
 
-//load console
-loadi(48,61);
-loadi(49,62);
+//Module 1
+loadi(42,55);
+loadi(43,56);
+
+//Module 2
+loadi(44,57);
+loadi(45,58);
+
+//Inode Table
+loadi(59,3);
+loadi(60,4);
+
+//Setting memory free list
+alias i R0;
+i=0;
+while(i<=82) do
+	[MEMORY_FREE_LIST+i]=1;
+	i=i+1;
+endwhile;
+[SYSTEM_STATUS_TABLE+2]=0;
+while(i<=127) do
+	[MEMORY_FREE_LIST+i]=0;
+	[SYSTEM_STATUS_TABLE+2]=[SYSTEM_STATUS_TABLE+2]+1;
+	i=i+1;
+endwhile;
 
 [TERMINAL_STATUS_TABLE]=0;
 // timer
