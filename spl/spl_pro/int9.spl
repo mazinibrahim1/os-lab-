@@ -38,6 +38,14 @@ endif;
 alias userpage R4;
 userpage=[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11];
 
+//pre process table
+	alias ind R13;
+	ind=496;
+	while(ind<=511) do
+		[userpage*512+ind]=-1;
+		ind=ind+2;
+	endwhile;
+
 	[MEMORY_FREE_LIST+userpage]=[MEMORY_FREE_LIST+userpage]+1;
 	[SYSTEM_STATUS_TABLE+2]=[SYSTEM_STATUS_TABLE+2]-1;
 	SP=userpage*512-1;
@@ -90,7 +98,15 @@ if([INODE_TABLE+i*16+8]!=-1)then
 	[PTBR+9]="0100";
 	multipop(R1,R2,R3,R4);
 	
-	loadi([PTBR+8],[INODE_TABLE+i*16+8]);
+	multipush( R1, R2, R3,R4);
+	R1=2;
+	R2=[SYSTEM_STATUS_TABLE + 1];
+	R3=[PTBR+8];
+	R4=[INODE_TABLE+i*16+8];
+	call MOD_4;
+	multipop(R1,R2,R3,R4);
+	
+	//loadi([PTBR+8],[INODE_TABLE+i*16+8]);
 endif;
 
 if([INODE_TABLE+i*16+9]!=-1)then
@@ -102,7 +118,15 @@ if([INODE_TABLE+i*16+9]!=-1)then
 	[PTBR+11]="0100";
 	multipop(R1,R2,R3,R4);
 	
-	loadi([PTBR+10],[INODE_TABLE+i*16+9]);
+	multipush( R1, R2, R3,R4);
+	R1=2;
+	R2=[SYSTEM_STATUS_TABLE + 1];
+	R3=[PTBR+10];
+	R4=[INODE_TABLE+i*16+9];
+	call MOD_4;
+	multipop(R1,R2,R3,R4);
+	
+	//loadi([PTBR+10],[INODE_TABLE+i*16+9]);
 endif;
 
 if([INODE_TABLE+i*16+10]!=-1)then
@@ -114,7 +138,15 @@ if([INODE_TABLE+i*16+10]!=-1)then
 	[PTBR+13]="0100";
 	multipop(R1,R2,R3,R4);
 	
-	loadi([PTBR+12],[INODE_TABLE+i*16+10]);
+	multipush( R1, R2, R3,R4);
+	R1=2;
+	R2=[SYSTEM_STATUS_TABLE + 1];
+	R3=[PTBR+12];
+	R4=[INODE_TABLE+i*16+10];
+	call MOD_4;
+	multipop(R1,R2,R3,R4);
+	
+	//loadi([PTBR+12],[INODE_TABLE+i*16+10]);
 endif;
 
 if([INODE_TABLE+i*16+11]!=-1)then
@@ -126,7 +158,15 @@ if([INODE_TABLE+i*16+11]!=-1)then
 	[PTBR+15]="0100";
 	multipop(R1,R2,R3,R4);
 	
-	loadi([PTBR+14],[INODE_TABLE+i*16+11]);
+	multipush( R1, R2, R3,R4);
+	R1=2;
+	R2=[SYSTEM_STATUS_TABLE + 1];
+	R3=[PTBR+14];
+	R4=[INODE_TABLE+i*16+11];
+	call MOD_4;
+	multipop(R1,R2,R3,R4);
+	
+	//loadi([PTBR+14],[INODE_TABLE+i*16+11]);
 endif;
 [[PTBR+16]*512]=[[PTBR+8]*512+1];
 SP=8*512;

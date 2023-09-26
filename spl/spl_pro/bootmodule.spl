@@ -22,13 +22,17 @@ loadi(15,28);
 loadi(20,33);
 loadi(21,34);
 
-//load console
-loadi(8,21);
-loadi(9,22);
-
 //load exception handler
 loadi(2,15);
 loadi(3,16);
+
+//load DISK INT
+loadi(6,19);
+loadi(7,20);
+
+//load console
+loadi(8,21);
+loadi(9,22);
 
 //load module0
 loadi(40,53);
@@ -65,12 +69,15 @@ while(i<=127) do
 endwhile;
 
 [TERMINAL_STATUS_TABLE]=0;
+[DISK_STATUS_TABLE]=0;
 // timer
 loadi(4, 17);
 loadi(5, 18);
 // schdeuler
 loadi(50,63);
 loadi(51,64);
+
+//---------------------------------------INIT PROCESS -------------------------//
 
 [PROCESS_TABLE + 13+16] = 8*512;
 [PROCESS_TABLE + 12+16] = 0;
@@ -110,5 +117,21 @@ PTLR = 10;
 [PTBR+19] = "0110";
 
 [76*512] = [65 * 512 + 1];
+
+//PRE PROCESS TABLE
+	alias ind R13;
+	ind=496;
+	while(ind<=511) do
+		[[PROCESS_TABLE + 11+16]*512+ind]=-1;
+		ind=ind+2;
+	endwhile;
+
+//ALL OTHER TERMINATED
+i = 4;
+while(i<16) do
+[PROCESS_TABLE+16*i+4] = TERMINATED;
+i = i+1;
+endwhile;
+
 return;
 

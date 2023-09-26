@@ -1,7 +1,7 @@
 alias functionNum R1;
 alias currentPID R2;
 alias word R3;
-if(functionNum==3)then
+if(functionNum==3)then // terminal write
 	multipush(R1, R2,R3);
 	R1=8;
 	call MOD_0;
@@ -14,7 +14,8 @@ if(functionNum==3)then
 	multipop(R1, R2,R3);
 	return;
 endif;
-if(functionNum==4)then
+
+if(functionNum==4)then //terminal read
 	multipush(R1, R2,R3);
 	R1=8;
 	call MOD_0;
@@ -26,6 +27,22 @@ if(functionNum==4)then
 	multipop(R1, R2,R3);
 	[([PTBR + 2 * word/ 512] * 512) + ((word) % 512)]=[PROCESS_TABLE+16*currentPID+8];
 	return;
-else
+endif;
+
+if(functionNum==2)then //disk load
+	multipush(R1, R2,R3,R4);
+	R1=3;
+	call MOD_0;
+	multipop(R1, R2,R3,R4);
+	
+	[DISK_STATUS_TABLE+1]=0;
+	[DISK_STATUS_TABLE+2]=R3;
+	[DISK_STATUS_TABLE+3]=R4;
+	load(R3,R4);
+	
+	[PROCESS_TABLE+16*currentPID+4]= WAIT_DISK;
+	multipush(R1, R2,R3,R4);
+	call MOD_5;
+	multipop(R1, R2,R3,R4);
 	return;
 endif;
