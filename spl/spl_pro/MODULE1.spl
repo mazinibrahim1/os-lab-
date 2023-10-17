@@ -1,3 +1,4 @@
+//free userpage
 if(R1==2)then
 	alias userpage R5;
 	userpage=[PROCESS_TABLE +  R2 * 16 + 11];
@@ -8,7 +9,7 @@ if(R1==2)then
 		multipop(R5,R1,R2);
 	return;
 endif;
-
+//exit process
 if(R1==3)then
 	//pagetable free
 		multipush(R1,R2);
@@ -26,7 +27,9 @@ if(R1==3)then
 	return;
 endif;
 
+//pagetable free
 if(R1==4)then
+	breakpoint;
 	PTBR=PAGE_TABLE_BASE+R2*20;
 	[PTBR+0]=-1;
 	[PTBR+1]="0000";
@@ -46,6 +49,43 @@ if(R1==4)then
 			endif;
 			i=i+2;
 		endwhile;
+		
+		if([DISK_MAP_TABLE + R2*10+2]!=-1)then
+			multipush(R5,R1,R2);
+				R1=4;
+				R2=[DISK_MAP_TABLE + R2*10+2];
+				call MOD_2;
+				multipop(R5,R1,R2);
+			[DISK_MAP_TABLE + 10*R2 + 2] = -1;
+		endif;
+		if([DISK_MAP_TABLE + R2*10+3]!=-1)then
+			multipush(R5,R1,R2);
+				R1=4;
+				R2=[DISK_MAP_TABLE + R2*10+3];
+				call MOD_2;
+				multipop(R5,R1,R2);
+			[DISK_MAP_TABLE + 10*R2 + 3] = -1;
+		endif;
+		if([DISK_MAP_TABLE + R2*10+8]!=-1)then
+			multipush(R5,R1,R2);
+				R1=4;
+				R2=[DISK_MAP_TABLE + R2*10+8];
+				call MOD_2;
+				multipop(R5,R1,R2);
+			[DISK_MAP_TABLE + 10*R2 + 8] = -1;
+		endif;
+		if([DISK_MAP_TABLE + R2*10+9]!=-1)then
+			multipush(R5,R1,R2);
+				R1=4;
+				R2=[DISK_MAP_TABLE + R2*10+8];
+				call MOD_2;
+				multipop(R5,R1,R2);
+			[DISK_MAP_TABLE + 10*R2 + 9] = -1;
+		endif;
+		[DISK_MAP_TABLE + 10*R2 + 4] = -1;
+		[DISK_MAP_TABLE + 10*R2 + 5] = -1;
+		[DISK_MAP_TABLE + 10*R2 + 6] = -1;
+		[DISK_MAP_TABLE + 10*R2 + 7] = -1;
 	return;
 endif;
 

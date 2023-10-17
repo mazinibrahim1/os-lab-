@@ -1,4 +1,4 @@
-
+//get page
 if(R1==1)then
 	[SYSTEM_STATUS_TABLE + 3]=[SYSTEM_STATUS_TABLE + 3]+1;
 	while([SYSTEM_STATUS_TABLE + 2]==0)do
@@ -20,11 +20,10 @@ if(R1==1)then
 		i=i+1;
 	endwhile;
 	R0=i;
-	//breakpoint;
 	return;
 endif;
 
-
+//free page
 if(R1==2)then
 	[MEMORY_FREE_LIST+R2]=[MEMORY_FREE_LIST+R2]-1;
 	if([MEMORY_FREE_LIST+R2]==0) then
@@ -38,6 +37,50 @@ if(R1==2)then
 			i=i+1;
 		endwhile;
 	endif;
+	return;
+endif;
+
+//get code page
+if(R1==5)then
+	alias blockNum R2;
+	alias pid_ind R4;
+	alias page R5;
+	
+	pid_ind=0;
+	while(pid_ind<MAX_PROC_NUM)do
+		page=4;
+		while(page<4+MAX_FILE_BLOCKS)do
+			if(([DISK_MAP_TABLE + pid_ind*10 + page] == blockNum) && ([PAGE_TABLE_BASE + 20*pid_ind + 2*page] != -1)) then
+				R0 = [PAGE_TABLE_BASE + 20*pid_ind + 2*page];
+				[MEMORY_FREE_LIST + R0] = [MEMORY_FREE_LIST + R0] + 1;
+				return;
+			endif;
+		page = page + 1;
+		endwhile;
+	pid_ind = pid_ind + 1;
+	endwhile;
+	
+	multipush(R1,R2,R4,R5);
+	R1=1;
+	call MOD_2;
+	multipop(R1,R2,R4,R5);
+	R4 = blockNum;		
+	R1 = DISK_LOAD;
+	R2 = [SYSTEM_STATUS_TABLE + 1];		
+	R3 = R0;
+
+	multipush(R0);
+	call MOD_4;		
+	multipop(R0);
 	breakpoint;
 	return;
 endif;
+
+//free block
+if(R1==4)then
+	
+	[DISK_FREE_LIST + R2] = [DISK_FREE_LIST + R2] - 1;		//decrementing count of corresponding block in DISK_FREE_LIST
+	return;
+
+endif;
+

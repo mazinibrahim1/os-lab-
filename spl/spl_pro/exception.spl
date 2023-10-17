@@ -1,1 +1,81 @@
-halt;
+[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = -1;
+[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+13] = SP;
+SP=[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+11]*512-1;
+breakpoint;
+backup;
+multipush(EIP);
+breakpoint;
+if((EC != 0) || ([PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+13] == (PTLR*512-1))) then
+		print "EXCEP_RAISED..!!!";		
+	if([PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+13] == (PTLR*512-1)) then
+			print "USER_STACK_FULL";
+		
+	else
+		if(EC == 1) then
+			print "wrong Instruction";
+		endif;
+
+		if(EC == 2) then
+	
+			print "wrong Memaddr";
+		endif;
+
+		if(EC == 3) then
+			print "Arithmatic error";
+		endif;
+	endif;
+	print "KILLING PROCESS";
+	
+	//exit process	
+	R2 = [SYSTEM_STATUS_TABLE+1];		
+	R1 = EXIT_PROCESS;
+	call MOD_1;		
+
+	call MOD_5;		//calling SCHEDULER
+else
+	if((EPN == 4) || (EPN == 5) || (EPN == 6) || (EPN == 7)) then
+		multipush(EIP, EPN, EC, EMA);		
+		//passing BLOCK_NUM in R2 for GET_CODE_PAGE
+		R2 = [DISK_MAP_TABLE + 10*[SYSTEM_STATUS_TABLE+1] + EPN];	
+		R1 = GET_CODE_PAGE;
+		call MOD_2;
+		
+		multipop(EIP, EPN, EC, EMA);		
+		[PTBR + 2*EPN + 0] = R0;
+		[PTBR + 2*EPN + 1] = "1100";
+	endif;
+	
+	if((EPN == 2) || (EPN==3)) then
+						
+		multipush(EIP, EPN, EC, EMA);		 
+		R1 = GET_FREE_PAGE;
+		call MOD_2;					
+		multipop(EIP, EPN, EC, EMA);		
+		[PTBR + 4] = R0;
+		[PTBR + 5] = "1110";
+		
+					
+		multipush(EIP, EPN, EC, EMA);		
+		R1 = GET_FREE_PAGE;
+		call MOD_2;	
+		multipop(EIP, EPN, EC, EMA);		
+		[PTBR + 6] = R0;
+		[PTBR + 7] = "1110";
+	endif;
+endif;
+breakpoint;
+[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = 0;
+multipop(EIP);
+restore;
+
+SP = [PROCESS_TABLE + 16*[SYSTEM_STATUS_TABLE + 1] + 13];
+SP = SP +1;
+[[PTBR+2*(SP/512)]*512+SP%512]= EIP;
+ireturn;
+
+
+
+
+
+SP = SP + 1;
+[[PTBR + 2*(SP/512)]*512 + SP%512] = EIP;

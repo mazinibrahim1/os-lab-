@@ -54,6 +54,9 @@ loadi(45,58);
 loadi(59,3);
 loadi(60,4);
 
+//disk free list 
+loadi(61,2);
+
 //Setting memory free list
 alias i R0;
 i=0;
@@ -68,6 +71,7 @@ while(i<=127) do
 	i=i+1;
 endwhile;
 
+[SYSTEM_STATUS_TABLE+3]=0;
 [TERMINAL_STATUS_TABLE]=0;
 [DISK_STATUS_TABLE]=0;
 // timer
@@ -117,6 +121,7 @@ PTLR = 10;
 [PTBR+19] = "0110";
 
 [76*512] = [65 * 512 + 1];
+//
 
 //PRE PROCESS TABLE
 	alias ind R13;
@@ -132,6 +137,15 @@ while(i<16) do
 [PROCESS_TABLE+16*i+4] = TERMINATED;
 i = i+1;
 endwhile;
+
+//intializing DISK_MAP_TABLE for INIT
+i = 0;
+while(i < 10) do
+	[DISK_MAP_TABLE + 10 + i] = -1;
+i = i + 1;
+endwhile;
+[DISK_MAP_TABLE + 10 + 4] = 7;
+[DISK_MAP_TABLE + 10 + 5] = 8;
 
 return;
 
