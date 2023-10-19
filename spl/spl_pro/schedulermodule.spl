@@ -33,6 +33,7 @@ PTLR=[PROCESS_TABLE +(newPID* 16)+15];
 [SYSTEM_STATUS_TABLE + 1] = newPID;
 //breakpoint;
 if([PROCESS_TABLE + newPID* 16+4] == CREATED) then
+	BP=[[PROCESS_TABLE + (newPID* 16)+11]*512];
 	SP = [PROCESS_TABLE + (newPID* 16)+13];
 	[PROCESS_TABLE + (newPID* 16)+4] = RUNNING;
 	//breakpoint;
