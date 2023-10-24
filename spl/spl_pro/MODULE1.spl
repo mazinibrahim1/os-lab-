@@ -38,6 +38,19 @@ if(R1==2)then
 endif;
 //exit process
 if(R1==3)then
+	if([PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] != 9)then
+		alias i R5;
+		i=0;
+		while(i<16)do
+			if([PROCESS_TABLE+16*i+4]==WAIT_PROCESS && [PROCESS_TABLE+i*16+5]==[SYSTEM_STATUS_TABLE+1]) then
+				[PROCESS_TABLE+16*i+4]=READY;
+			endif;
+			if([PROCESS_TABLE+16*i+2]==[SYSTEM_STATUS_TABLE+1]) then
+				[PROCESS_TABLE+16*i+2]=-1;
+			endif;
+			i=i+1;
+		endwhile;
+	endif;
 	//pagetable free
 		multipush(R1,R2);
 		R1=4;
@@ -51,6 +64,7 @@ if(R1==3)then
 		multipop(R1,R2);
 
 	[PROCESS_TABLE +  R2 * 16 + 4]=TERMINATED;
+	 
 	return;
 endif;
 

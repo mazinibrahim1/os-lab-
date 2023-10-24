@@ -18,9 +18,21 @@ loadi(17,30);
 loadi(14,27);
 loadi(15,28);
 
+//load int 8
+loadi(18,31);
+loadi(19,32);
+
 //load int 9
 loadi(20,33);
 loadi(21,34);
+
+//load int 11
+loadi(24, 37);
+loadi(25, 38);
+
+//load int 15
+loadi(32, 45);
+loadi(33, 46);
 
 //load exception handler
 loadi(2,15);
@@ -54,9 +66,6 @@ loadi(45,58);
 loadi(59,3);
 loadi(60,4);
 
-//load int 8
-loadi(18,31);
-loadi(19,32);
 
 //disk free list 
 loadi(61,2);

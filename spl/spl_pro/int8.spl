@@ -131,7 +131,7 @@ endwhile;
 [[PROCESS_TABLE+16*newpid+11]*512] = BP;
 
 //parent return value
-[( [PAGE_TABLE_BASE+newpid*20+ 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512)]= newpid;
+[( [PTBR+ 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512)]= newpid;
 
 //child return value
 [( [PAGE_TABLE_BASE+newpid*20+ 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512)]= 0;

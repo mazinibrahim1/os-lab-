@@ -1,0 +1,84 @@
+alias userSP R10;
+userSP=SP;
+[PROCESS_TABLE +  [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;//store user stack 
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;//change sp to kernal stack 
+breakpoint;
+alias arg R12;
+alias syscall R11;
+syscall=[([PTBR + 2 * ((userSP - 5) / 512)] * 512) + ((userSP - 5) % 512)];
+
+if(syscall==11)then //getpid
+	[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = syscall;
+	[([PTBR + 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512)]=[SYSTEM_STATUS_TABLE + 1];
+	[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = 0;
+	SP = [PROCESS_TABLE + ( [SYSTEM_STATUS_TABLE + 1] * 16) + 13];
+	ireturn;
+
+endif;
+
+if(syscall==12)then //getppid
+	[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = syscall;
+
+	
+	[([PTBR + 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512)]= [PROCESS_TABLE + 16 * [SYSTEM_STATUS_TABLE+1] + 2];
+
+	[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = 0;	
+	
+	SP = [PROCESS_TABLE + ( [SYSTEM_STATUS_TABLE + 1] * 16) + 13];
+	ireturn;
+
+
+endif;
+
+if(syscall==13)then//wait
+[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = syscall;
+arg=[[PTBR + 2*((userSP-4)/512)]*512 + (userSP-4)%512];
+    
+
+//check valid
+if(arg<0 ||arg>=MAX_PROC_NUM || arg==[SYSTEM_STATUS_TABLE+1] || [PROCESS_TABLE+arg*16+4]==TERMINATED)then
+	[([PTBR + 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512)]=-1;
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+	SP=userSP;
+	ireturn;
+endif;
+
+[PROCESS_TABLE + 16 * [SYSTEM_STATUS_TABLE + 1] + 4] = WAIT_PROCESS;
+[PROCESS_TABLE + 16 * [SYSTEM_STATUS_TABLE + 1] + 5] = arg;
+
+	backup;
+		call MOD_5;
+	restore;
+	
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+
+	//Setting return value to 0
+	[([PTBR + 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512)]= 0;
+
+	SP = [PROCESS_TABLE + ( [SYSTEM_STATUS_TABLE + 1] * 16) + 13];
+	ireturn;
+endif;
+
+if(syscall==14)then//signal
+	[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = syscall;
+	alias i R13;
+	i=0;
+	while(i<=15) do
+		if ([PROCESS_TABLE + i*16 + 4]==WAIT_PROCESS && 
+			[PROCESS_TABLE + i*16 + 5]==[SYSTEM_STATUS_TABLE+1]) then
+				[PROCESS_TABLE + i*16 + 4]=READY;
+		endif;
+		i=i+1;
+	endwhile;
+
+	//restoring mode flag
+	[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+
+	//Setting return value to 0
+	[([PTBR + 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512)]= 0;
+
+	SP = [PROCESS_TABLE + ( [SYSTEM_STATUS_TABLE + 1] * 16) + 13];
+	ireturn;
+
+endif;
+
