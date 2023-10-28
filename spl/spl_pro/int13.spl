@@ -1,0 +1,106 @@
+alias userSP R10;
+userSP=SP;
+[PROCESS_TABLE +  [SYSTEM_STATUS_TABLE + 1] * 16 + 13] = SP;//store user stack 
+SP = [PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;//change sp to kernal stack 
+breakpoint;
+alias arg R12;
+alias syscall R11;
+alias UAP_num R3;
+UAP_num = [PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1] + 11];
+alias i R13;
+alias sem_desc_ind R8;	
+alias sem_id R7;	
+syscall=[([PTBR + 2 * ((userSP - 5) / 512)] * 512) + ((userSP - 5) % 512)];
+
+if(syscall==17)then //Semget
+	[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = syscall;
+	breakpoint;
+		i = 496;
+	while(i < 512) do
+		if([UAP_num*512 + i] == -1) then
+			break;
+		endif;
+	i = i + 2;
+	endwhile;
+	breakpoint;
+	if(i == 512) then	// no entry in PER_PROCESS_RESOURCE_TABle
+		[([PTBR + 2 * ((userSP - 1) / 512)] * 512) + ((userSP - 1) % 512)] = -1;        //returning to user mode with -1 
+
+		[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = 0;
+                SP = [PROCESS_TABLE+(16*[SYSTEM_STATUS_TABLE+1])+13];
+                ireturn;
+	else			// free entry is found 
+
+		sem_desc_ind = (i - 496)/2;
+		breakpoint;
+		// call ACCQUIRE_SEM
+		multipush (R0, R11, R13, R3, R12, R10, R8);
+		R2 = [SYSTEM_STATUS_TABLE+1];
+		R1 = ACQUIRE_SEMAPHORE;
+		
+		call MOD_0;
+		sem_id = R0;		// SEM_ID is in R7 so its not  pushed or poped
+		multipop (R0, R11, R13, R3, R12, R10, R8);
+
+
+
+		if(sem_id == -1) then	// new SEM available
+				[[PTBR + 2*((userSP-1)/512)]*512 + (userSP-1)%512] = -2;        //returning to user mode with -2 ret value indicating failure as no free entry im SEM_TAB
+
+				[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = 0;
+		        	SP = [PROCESS_TABLE+(16*[SYSTEM_STATUS_TABLE+1])+13];
+				ireturn;
+			
+			else	// new SEM available
+				
+				[UAP_num*512 + i] = SEMAPHORE;	//setting resource identifier for SEMAPHORE in free entry foun in PER_PROC_RES_TAB
+				[UAP_num*512 + i + 1] = sem_id; //sem_id semaphore table index
+
+				[[PTBR + 2*((userSP-1)/512)]*512 + (userSP-1)%512] = sem_desc_ind; //Per-process Resource Table entry index.
+
+				[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = 0;
+			endif;
+
+	endif;
+
+endif;
+	
+
+
+
+
+if(syscall==18)then //Semrelease
+	[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = syscall;
+	sem_desc_ind = [[PTBR + 2*((userSP-4)/512)]*512 + (userSP-4)%512];
+
+	if(sem_desc_ind < 0 || sem_desc_ind > 7 || [UAP_num*512 + (2*sem_desc_ind) + 496] != SEMAPHORE) then		// sem_desc_indis not valid
+		
+		[[PTBR + 2*((userSP-1)/512)]*512 + (userSP-1)%512] = -1;
+		
+		[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1] + 9] = 0;
+		SP = [PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1] + 13];
+		ireturn;
+	else	// sem_desc_ind is valid
+
+		sem_id = [UAP_num*512 + (2*sem_desc_ind) + 496 + 1];
+
+		backup;	
+		R3 = [SYSTEM_STATUS_TABLE+1];
+		R1 = RELEASE_SEMAPHORE;
+		R2 = sem_id;
+		call MOD_0;	// RELEASE_SEMAPHORE 
+		restore;	
+
+		[UAP_num*512 + (2*sem_desc_ind) + 496] = -1;
+		[UAP_num*512 + (2*sem_desc_ind) + 496 + 1] = -1;
+
+		[[PTBR + 2*((userSP-1)/512)]*512 + (userSP-1)%512] = 0;
+
+	endif;
+
+endif;
+
+
+	[PROCESS_TABLE+16*[SYSTEM_STATUS_TABLE+1]+9] = 0;
+	SP = [PROCESS_TABLE + ( [SYSTEM_STATUS_TABLE + 1] * 16) + 13];
+	ireturn;

@@ -29,12 +29,30 @@ endif;
 if(R1==2)then
 	alias userpage R5;
 	userpage=[PROCESS_TABLE +  R2 * 16 + 11];
+		alias i R6;
+		i=0;
+		
+		while(i < 8) do
+
+		if([userpage*512 + 496 + 2*i] == SEMAPHORE) then
+			backup;		//insteasd of MULTIPUSH	 
+			R3 = R2;
+			R2 = [userpage*512 + 496 + 2*i + 1];
+			R1 = RELEASE_SEMAPHORE;
+			call MOD_0;
+			restore; 	//instead of MULTIPOP
+		endif;
+
+			i = i + 1;
+		endwhile;
+	
+	
 		multipush(R5,R1,R2);
 		R1=2;
 		R2=userpage;
 		call MOD_2;
 		multipop(R5,R1,R2);
-	return;
+		return;
 endif;
 //exit process
 if(R1==3)then
@@ -70,7 +88,6 @@ endif;
 
 //pagetable free
 if(R1==4)then
-	breakpoint;
 	PTBR=PAGE_TABLE_BASE+R2*20;
 	[PTBR+0]=-1;
 	[PTBR+1]="0000";

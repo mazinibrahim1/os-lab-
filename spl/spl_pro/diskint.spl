@@ -1,6 +1,5 @@
 [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 13]=SP;//store sp
 SP=[PROCESS_TABLE + ([SYSTEM_STATUS_TABLE + 1] * 16) + 11] * 512 - 1;//change sp to kernal stack 
-breakpoint;
 backup;
 [DISK_STATUS_TABLE]=0;
 alias i R2;
@@ -14,6 +13,5 @@ i=1;
 		
 	endwhile;
 restore;
-breakpoint;
 SP = [PROCESS_TABLE + ( [SYSTEM_STATUS_TABLE + 1] * 16) + 13];
 ireturn;

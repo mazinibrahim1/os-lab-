@@ -66,6 +66,14 @@ loadi(45,58);
 loadi(59,3);
 loadi(60,4);
 
+//load int 13
+loadi(28, 41);
+loadi(29, 42);
+
+//load int 14
+loadi(30, 43);
+loadi(31, 44);
+
 
 //disk free list 
 loadi(61,2);
@@ -160,5 +168,13 @@ endwhile;
 [DISK_MAP_TABLE + 10 + 4] = 7;
 [DISK_MAP_TABLE + 10 + 5] = 8;
 
+// semaphore table initialize
+i = 0;				
+while(i < MAX_SEM_COUNT) do
+	[SEMAPHORE_TABLE + 4*i]=-1;
+	[SEMAPHORE_TABLE + 4*i+1]= 0;
+
+	i = i + 1;
+endwhile;
 return;
 
