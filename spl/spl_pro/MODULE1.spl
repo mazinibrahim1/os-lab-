@@ -23,8 +23,6 @@ pcb=-1;
 	return;
 endif;
 
-
-
 //free userpage
 if(R1==2)then
 	alias userpage R5;
@@ -42,7 +40,14 @@ if(R1==2)then
 			call MOD_0;
 			restore; 	//instead of MULTIPOP
 		endif;
-
+		
+		if([userpage*512 + 496 + 2*i] == FILE) then
+			backup;		//insteasd of MULTIPUSH
+			R1 = CLOSE;		//		calling CLOSE of FILE_MANAGER_TABLE 
+			R2 = [userpage*512 + 496 + 2*i + 1];
+			call MOD_3;
+			restore; 	//instead of MULTIPOP
+		endif;
 			i = i + 1;
 		endwhile;
 	
@@ -88,6 +93,7 @@ endif;
 
 //pagetable free
 if(R1==4)then
+	alias tmp R4;
 	PTBR=PAGE_TABLE_BASE+R2*20;
 	[PTBR+0]=-1;
 	[PTBR+1]="0000";
@@ -108,42 +114,67 @@ if(R1==4)then
 			i=i+2;
 		endwhile;
 		
-		if([DISK_MAP_TABLE + R2*10+2]!=-1)then
-			multipush(R5,R1,R2);
-				R1=4;
-				R2=[DISK_MAP_TABLE + R2*10+2];
-				call MOD_2;
-				multipop(R5,R1,R2);
-			[DISK_MAP_TABLE + 10*R2 + 2] = -1;
+			i=0;
+	while(i<10) do
+		if(([DISK_MAP_TABLE + 10*R2 + i] != -1) && (i==2 || i==3 || i==8 || i==9)) then
+			backup;		//instead of multipush
+			R1 = RELEASE_BLOCK;
+			tmp = i;
+			R3 = R2;		//>>>!!!CAUTION!!!<<< Notice the use of TMP & order of assigning args
+			R2 = [DISK_MAP_TABLE + 10*R2 + tmp];		//blockNum
+			call MOD_2;		//calling RELEASE_BLOCK on HEAP and STACK blocks if SWAPPED into DISK
+			restore;	//instead of multipop
 		endif;
-		if([DISK_MAP_TABLE + R2*10+3]!=-1)then
-			multipush(R5,R1,R2);
-				R1=4;
-				R2=[DISK_MAP_TABLE + R2*10+3];
-				call MOD_2;
-				multipop(R5,R1,R2);
-			[DISK_MAP_TABLE + 10*R2 + 3] = -1;
-		endif;
-		if([DISK_MAP_TABLE + R2*10+8]!=-1)then
-			multipush(R5,R1,R2);
-				R1=4;
-				R2=[DISK_MAP_TABLE + R2*10+8];
-				call MOD_2;
-				multipop(R5,R1,R2);
-			[DISK_MAP_TABLE + 10*R2 + 8] = -1;
-		endif;
-		if([DISK_MAP_TABLE + R2*10+9]!=-1)then
-			multipush(R5,R1,R2);
-				R1=4;
-				R2=[DISK_MAP_TABLE + R2*10+8];
-				call MOD_2;
-				multipop(R5,R1,R2);
-			[DISK_MAP_TABLE + 10*R2 + 9] = -1;
-		endif;
-		[DISK_MAP_TABLE + 10*R2 + 4] = -1;
-		[DISK_MAP_TABLE + 10*R2 + 5] = -1;
-		[DISK_MAP_TABLE + 10*R2 + 6] = -1;
-		[DISK_MAP_TABLE + 10*R2 + 7] = -1;
+		[DISK_MAP_TABLE + 10*R2 + i] = -1;		//invalidating all entries in the DISK_MAP_TAB for current process
+	i = i + 1;
+	endwhile;
 	return;
+endif;
+
+if(R1 == KILL_ALL) then
+	alias i R4;
+
+	i = 0;
+	while(i < MAX_FILE_NUM) do    //Lock all files to ensure that no processes are in the middle of a file operation 
+		if([INODE_TABLE + 16*i + 1] != -1) then
+			multipush(R4,R1,R2,R3);
+			R1 = ACQUIRE_INODE;
+			R3 = R2;
+			R2 = i;
+			call MOD_0;
+			multipop(R4,R1,R2,R3);
+		endif;
+	i = i + 1;
+	endwhile;
+
+	i = 2;
+	while(i <  MAX_PROC_NUM) do
+
+		if(([PROCESS_TABLE + 16*i + 4] != TERMINATED) && (i != R2)) then
+			multipush(R4,R1,R2,R3);
+			R1 = EXIT_PROCESS;
+			R2 = i;
+			call MOD_1;
+			multipop(R4,R1,R2,R3);
+		endif;
+
+	i = i + 1;
+	endwhile;
+
+	i = 0;
+	while(i < MAX_FILE_NUM) do    //release inode lock of all file s acquired before 
+		if([INODE_TABLE + 16*i + 1] != -1) then
+			multipush(R4,R1,R2,R3);
+			R1 = RELEASE_INODE;
+			R3 = R2;
+			R2 = i;
+			call MOD_0;
+			multipop(R4,R1,R2,R3);
+		endif;
+	i = i + 1;
+	endwhile;
+
+	return;
+
 endif;
 

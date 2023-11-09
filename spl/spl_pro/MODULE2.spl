@@ -76,7 +76,26 @@ if(R1==5)then
 	return;
 endif;
 
-//free block
+if(R1== GET_FREE_BLOCK) then
+	alias i R2;
+
+	i = DISK_FREE_AREA;
+	while(i < DISK_SWAP_AREA) do
+		if([DISK_FREE_LIST + i] == 0) then
+			[DISK_FREE_LIST + i] = 1;	//setting found free block in dfl to 1
+			R0 = i;				//returing free block num found
+			return;
+		endif;
+	i = i + 1;
+	endwhile;
+
+	//	return -1 if no free block present
+	R0 = -1;
+	return;
+
+endif;
+
+//relese block
 if(R1==4)then
 	
 	[DISK_FREE_LIST + R2] = [DISK_FREE_LIST + R2] - 1;		//decrementing count of corresponding block in DISK_FREE_LIST
@@ -84,3 +103,24 @@ if(R1==4)then
 
 endif;
 
+
+if (R1 == 6)then
+
+    alias blockNo R2;
+
+    blockNo = DISK_SWAP_AREA;
+    while(blockNo < DISK_SIZE &&  [DISK_FREE_LIST + blockNo]!=0 )do
+        blockNo = blockNo + 1;
+    endwhile;
+
+    if (blockNo==DISK_SIZE)then
+        R0 = -1;
+    else
+        [DISK_FREE_LIST + blockNo] = 1;
+        R0 = blockNo;
+    endif;
+    return;
+endif;
+
+
+return;

@@ -39,9 +39,7 @@ child_process_table = PROCESS_TABLE + ind*16;
 child_page_table = PAGE_TABLE_BASE + ind*20;
 
 //----------------------------CHECKING if heap page is allocated or not-------------------------
-//>>>>>>> COMMMENTING THIS SINCE FORK WAS EXCEEDING 2 CODE BLOCKS (MIGHT NEED TOM CHANGE LATER)<<<<<<if(([PTBR + 4] == -1) || [PTBR + 6] == -1 || [PTBR + 5] == "0000" || [PTBR + 5]=="1000" || [PTBR + 5]=="0010" || [PTBR + 5] == "0001" || [PTBR + 5]=="1010" || [PTBR + 5]=="1001" || [PTBR + 5] == "0011" || [PTBR + 5]=="1011" || [PTBR + 7] == "0000" || [PTBR + 7]=="1000" || [PTBR + 7]=="0010" || [PTBR + 7] == "0001" || [PTBR + 7]=="1010" || [PTBR + 7]=="1001" || [PTBR + 7] == "0011" || [PTBR + 7]=="1011") then
-//curr_AP_num = [curr_process_table + 11];
-//curr_UAP_num = [curr_process_table + 11];
+
 if(([PTBR + 4] == -1) || ([PTBR + 6] == -1))  then
 	//Allocting HEAP PAGE 1
 	//multipush (R0, R1, R2, R3, R6, R7, R8, R9);
